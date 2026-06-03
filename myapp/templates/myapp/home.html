@@ -1,0 +1,154 @@
+{% extends 'myapp/layout.html' %}
+{% load static %}
+
+{% block title %}Головна{% endblock %}
+
+{% block content %}
+
+<div class="container" style="max-width: 800px; margin: 0 auto; padding: 20px;">
+
+    <div class="text-center mt-5">
+        <h2>Ласкаво просимо до «Ресторанів міста»!</h2>
+    </div>
+
+    <div style="margin-top: 30px; background-color: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #dee2e6;">
+        <form method="GET" action="" style="display: flex; gap: 10px;">
+            <input type="text" name="search" value="{{ search_query }}"
+                   placeholder="Введіть спеціалізацію (наприклад: італійська, суші...)"
+                   style="flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px; font-size: 15px;">
+
+            <button type="submit"
+                    style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; font-size: 15px;">
+                Пошук
+            </button>
+
+            {% if search_query %}
+                <a href="{% url 'home' %}"
+                   style="background-color: #6c757d; color: white; text-decoration: none; padding: 10px 15px; border-radius: 4px; font-size: 15px; display: flex; align-items: center;">
+                    Скинути
+                </a>
+            {% endif %}
+        </form>
+    </div>
+
+    <div style="margin-top: 40px; margin-bottom: 50px;">
+        <h3 style="border-bottom: 2px solid #333; padding-bottom: 10px; margin-bottom: 20px;">
+            {% if search_query %}
+                Результати пошуку за запитом "{{ search_query }}"
+            {% else %}
+                Усі ресторани міста
+            {% endif %}
+        </h3>
+
+        {% if restaurants %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                {% for restaurant in restaurants %}
+                    <div style="border: 1px solid #ccc; padding: 15px; border-radius: 8px; background-color: #f9f9f9;">
+
+                        <div style="display: flex; gap: 5px; margin-bottom: 10px; overflow-x: auto;">
+                            {% for img_obj in restaurant.images.all %}
+                                <img src="{{ img_obj.image.url }}" alt="{{ restaurant.title }}"
+                                     style="width: 100%; max-height: 150px; object-fit: cover; border-radius: 4px;">
+                            {% empty %}
+                                <div style="width: 100%; height: 150px; background-color: #e0e0e0; display: flex; align-items: center; justify-content: center; border-radius: 4px; color: #666;">
+                                    Немає фото
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <h4 style="margin: 0 0 10px 0; color: #007bff;">{{ restaurant.title }}</h4>
+
+                        <p style="margin: 5px 0;">
+                            <strong>Кухня:</strong>
+                            {% for spec in restaurant.specializations.all %}
+                                <span style="background: #e2e3e5; padding: 2px 6px; border-radius: 4px; font-size: 12px; margin-right: 3px;">
+                                    {{ spec.name }}
+                                </span>
+                            {% empty %}
+                                <span style="color: gray;">Не вказано</span>
+                            {% endfor %}
+                        </p>
+
+                        <p style="margin: 5px 0;"><strong>Адреса:</strong> {{ restaurant.address }}</p>
+                        <p style="margin: 5px 0;"><strong>Телефон:</strong> {{ restaurant.phone }}</p>
+                        {% if restaurant.website %}
+                            <p style="margin: 5px 0;"><strong>Сайт:</strong> <a href="{{ restaurant.website }}" target="_blank">{{ restaurant.website }}</a></p>
+                        {% endif %}
+
+                        <div style="margin-top: 15px; display: flex; justify-content: space-between; align-items: center;">
+                            <button onclick="startEdit({
+                                        id: '{{ restaurant.id }}',
+                                        title: '{{ restaurant.title|escapejs }}',
+                                        address: '{{ restaurant.address|escapejs }}',
+                                        website: '{{ restaurant.website|escapejs }}',
+                                        phone: '{{ restaurant.phone|escapejs }}',
+                                        specs: [{% for s in restaurant.specializations.all %}'{{ s.id }}',{% endfor %}]
+                                    })"
+                                    style="background-color: #ffc107; color: black; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                                Редагувати
+                            </button>
+
+                            <button onclick="deleteRestaurant({{ restaurant.id }})"
+                                    style="background-color: #dc3545; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 14px;">
+                                Видалити
+                            </button>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            {% if search_query %}
+                <p style="color: #dc3545; font-style: italic;">Ресторанів зі спеціалізацією "{{ search_query }}" не знайдено.</p>
+            {% else %}
+                <p style="color: gray; font-style: italic;">Ресторанів ще немає у базі даних. Будьте першим, хто додасть!</p>
+            {% endif %}
+        {% endif %}
+    </div>
+
+    <div style="border-top: 2px dashed #ccc; padding-top: 30px;">
+        <h3 id="formTitle" class="text-center" style="margin-bottom: 20px;">Додати новий ресторан</h3>
+
+        <form id="restaurantForm" style="max-width: 500px; margin: 0 auto;">
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Назва:</label>
+                <input type="text" id="title" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Спеціалізація (Ctrl для вибору кількох):</label>
+                <select id="specializations" multiple style="width: 100%; padding: 8px; height: 100px;">
+                    {% for spec in specializations %}
+                        <option value="{{ spec.id }}">{{ spec.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Адреса:</label>
+                <input type="text" id="address" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Веб-сайт:</label>
+                <input type="url" id="website" style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Телефон:</label>
+                <input type="text" id="phone" required style="width: 100%; padding: 8px;">
+            </div>
+
+            <div style="margin-bottom: 15px;">
+                <label style="display: block; margin-bottom: 5px;">Фото ресторана:</label>
+                <input type="file" id="image" accept="image/*" style="width: 100%; padding: 8px;">
+            </div>
+
+            <button type="submit" style="background-color: #007bff; color: white; padding: 10px 20px; border: none; cursor: pointer; width: 100%; font-size: 16px;">
+                Зберегти ресторан
+            </button>
+        </form>
+    </div>
+</div>
+
+<script src="{% static 'myapp/main.js' %}"></script>
+{% endblock %}
