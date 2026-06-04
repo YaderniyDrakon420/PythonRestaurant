@@ -82,3 +82,53 @@ function deleteRestaurant(restaurantId) {
         });
     }
 }
+
+function submitReview(event, restaurantId) {
+    event.preventDefault();
+    const titleInput = document.getElementById(`rev_title_${restaurantId}`);
+    const textInput = document.getElementById(`rev_text_${restaurantId}`);
+
+    const formData = new FormData();
+    formData.append('title', titleInput.value);
+    formData.append('text', textInput.value);
+
+    const getCookie = (name) => {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                const cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    };
+    fetch(`/restaurant/${restaurantId}/review/`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error('Server returned status ' + response.status);
+        }
+        return response.json();
+    })
+    .then(data => {
+        if (data.error) {
+            alert('Помилка: ' + data.error);
+        } else {
+            alert('Дякуємо за ваш відгук!');
+            window.location.reload();
+        }
+    })
+    .catch(error => {
+        console.error('Error details:', error);
+        alert('Сталася помилка при отправці відгуку');
+    });
+}

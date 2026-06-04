@@ -10,8 +10,7 @@ urlpatterns = [
     path('layout', views.layout),
     path('restaurant/delete/<int:restaurant_id>/', views.delete_restaurant, name='delete_restaurant'),
     path('restaurant/edit/<int:restaurant_id>/', views.edit_restaurant, name='edit_restaurant'),
-    # path('category/<int:id>/', category),
-    # path('category/<slug:category_slug>/', category)
+    path('restaurant/<int:restaurant_id>/review/', views.make_review, name='add_review'),
 ]
 
 if settings.DEBUG:

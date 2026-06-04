@@ -13,3 +13,8 @@ class Restaurant(models.Model):
 class RestaurantImage(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='images')
     image = models.ImageField(upload_to='restaurants/')
+
+class Review(models.Model):
+    title = models.CharField(max_length=100)
+    text = models.CharField(max_length=1000)
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='review')

@@ -1,13 +1,10 @@
 from django.http import HttpResponse, Http404, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from django.views.decorators.csrf import csrf_exempt
-from .models import Restaurant, Specialization, RestaurantImage
 import json
-
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from .models import Restaurant, Specialization, RestaurantImage
+from .models import Restaurant, Specialization, RestaurantImage, Review
 
 
 @csrf_exempt
@@ -80,14 +77,12 @@ def delete_restaurant(request, restaurant_id):
 
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
-
 @csrf_exempt
 def edit_restaurant(request, restaurant_id):
     if request.method == 'POST':
         try:
             restaurant = get_object_or_404(Restaurant, id=restaurant_id)
 
-            # Извлекаем новые данные из формы
             restaurant.title = request.POST.get("title")
             restaurant.address = request.POST.get("address")
             restaurant.website = request.POST.get("website", "")
@@ -115,7 +110,23 @@ def edit_restaurant(request, restaurant_id):
             return JsonResponse({"error": str(e)}, status=400)
     return JsonResponse({"error": "Method not allowed"}, status=405)
 
-
+def make_review(request, restaurant_id):
+    if request.method == 'POST':
+        try:
+            restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+            title = request.POST.get("title")
+            text = request.POST.get("text")
+            if not title or not text:
+                return JsonResponse({"error": "Заголовок та текст відгуку обов'язкові"}, status=400)
+            Review.objects.create(
+                title=title,
+                text=text,
+                restaurant=restaurant
+            )
+            return JsonResponse({"message": "Відгук успішно додано!"}, status=201)
+        except Exception as e:
+            return JsonResponse({"error": str(e)}, status=400)
+    return JsonResponse({"error": "Method not allowed"}, status=405)
 
 def contacts(request):
     return render(request, 'myapp/contacts.html')
@@ -128,14 +139,3 @@ def layout(request):
 
 def page_not_found(request, exception):
     return render(request, 'myapp/not_found.html', status=404)
-
-# def category(request, id=None, category_slug=None):
-#     if id is not None:
-#         if id==2:
-#             raise Http404()
-#         elif id==3:
-#             return redirect('main')
-#         return HttpResponse(f"Category Id {id}")
-#     elif category_slug is not None:
-#         return HttpResponse(f"Category slug {category_slug}")
-#     return HttpResponse("Category Page")
