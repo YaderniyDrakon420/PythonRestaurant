@@ -13,4 +13,6 @@ class Employee(models.Model):
     phone = models.CharField(max_length=20)
     email = models.EmailField(blank=True, null=True)
     position = models.CharField(max_length=100, blank=True)
-    restaurant = models.ForeignKey('myapp.Restaurant', on_delete=models.CASCADE, related_name='employees', verbose_name="Ресторан")
+    salary = models.DecimalField(max_digits=10, decimal_places=2)
+    hire_date = models.DateField()
+    restaurant = models.ForeignKey('myapp.Restaurant', on_delete=models.CASCADE, related_name='employees')

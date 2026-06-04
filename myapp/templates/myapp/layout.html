@@ -22,7 +22,7 @@
         </button>
 
         <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto">
+            <ul class="navbar-nav mx-auto">
 
                 <li class="nav-item">
                     <a class="nav-link" href="/">Головна</a>
@@ -34,6 +34,14 @@
 
                 <li class="nav-item">
                     <a class="nav-link" href="/contacts">Контакти</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'owners_list' %}">Власники</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="{% url 'employees_by_restaurant' %}">Співробітники</a>
                 </li>
 
             </ul>

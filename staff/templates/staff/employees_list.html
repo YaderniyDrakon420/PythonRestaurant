@@ -1,0 +1,44 @@
+{% extends 'myapp/layout.html' %}
+
+{% block title %}Співробітники{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 800px; margin: 20px auto; padding: 20px;">
+    <h2>Пошук співробітників за назвою ресторана</h2>
+
+    <div style="margin-top: 20px; margin-bottom: 30px;">
+        <form method="GET" action="" style="display: flex; gap: 10px;">
+            <input type="text" name="restaurant_name" value="{{ search_query }}"
+                   placeholder="Введіть повну або часткову назву ресторану..." required
+                   style="flex-grow: 1; padding: 10px; border: 1px solid #ccc; border-radius: 4px;">
+            <button type="submit" style="background-color: #28a745; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer;">
+                Знайти штат
+            </button>
+        </form>
+    </div>
+
+    {% if search_query %}
+        <hr>
+        {% if restaurant %}
+            <h3>Співробітники ресторану "{{ restaurant.title }}"</h3>
+
+            <div style="margin-top: 20px; display: flex; flex-direction: column; gap: 10px;">
+                {% for emp in employees %}
+                    <div style="border: 1px solid #ddd; padding: 12px; border-radius: 6px; background: #fff;">
+                        <strong>{{ emp.name }} {{ emp.surname }}</strong> — <span style="color: #666;">{{ emp.position|default:"Посада не вказана" }}</span>
+                        <div style="font-size: 14px; margin-top: 5px; color: #444;">
+                            <span>📞 Телефон: {{ emp.phone }}</span> |
+                            <span>💰 Ставка: {{ emp.salary }} грн</span> |
+                            <span>📅 Працює з: {{ emp.hire_date }}</span>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p style="font-style: italic; color: gray;">У цьому ресторані ще немає доданих співробітників.</p>
+                {% endfor %}
+            </div>
+        {% else %}
+            <p style="color: #dc3545; font-style: italic;">Ресторан з назвою "{{ search_query }}" не знайдено.</p>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}
